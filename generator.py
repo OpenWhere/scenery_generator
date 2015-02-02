@@ -60,7 +60,7 @@ def get_property_map(json_string):
     property_map = {}
     for l in property_lines:
         properties = l.split(':')
-        key = properties[0].replace('"', '')
+        key = properties[0].replace('"', '').strip()
         value = properties[1].strip()
 
         # Identify property types
