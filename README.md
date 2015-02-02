@@ -9,7 +9,7 @@ pyvenv /path/to/scenery-generator/environment/
 cd /path/to/scenery-generator/environment/
 git clone ...
 source /path/to/scenery-generator/environment/bin/activate
-pip install beautifulsoup4 demjson
+pip install beautifulsoup4
 ```
 
 ## Usage

@@ -3,10 +3,12 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 
-import re
+import os, pprint
 
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_URL = "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/"
 CONTENTS_URL = "%s/%s" % (DOCS_URL, "aws-template-resource-type-ref.html")
+
 
 def main():
     # Get the list of all classes
@@ -21,19 +23,17 @@ def main():
             continue
         classes[link.getText()] = link['href']
 
-    # For each class, retrieve the list of properties
+    # For each class, retrieve the list of properties and generate class file
     for key, value in classes.items():
         properties = get_property_list(value)
         if properties:
             property_map = get_property_map(properties)
-            classes[key] = property_map
-
-    print(classes)
+            create_class_file(key, property_map)
 
 
 def get_property_list(page_url):
     if 'aws' not in page_url or 'cfn' in page_url or '.html' not in page_url:
-    	return None
+        return None
 
     print("Fetching: %s" % page_url)
     class_page = urlopen("%s/%s" % (DOCS_URL, page_url))
@@ -76,6 +76,32 @@ def get_property_map(json_string):
             property_map[key] = "String"
 
     return property_map
+
+
+def create_class_file(class_name, property_map):
+    class_array = class_name.split('::')
+    if len(class_array) < 2:
+        return None
+
+    formatted_pm = pprint.pformat(property_map, indent=4).replace( \
+            '{', '{\n ').replace( \
+            '}', '\n}')
+
+    with open ("./scenery_class_template.js", "r") as template_file:
+        # Read in the template, plugging in our values for the class
+        template = template_file.read()
+        class_file_contents = template % (formatted_pm, class_name)
+
+        output_dir = os.path.join(CURRENT_DIR, 'output', class_array[1])
+        file_path = os.path.join(output_dir, class_array[2] + ".js")
+
+        # Check to see if the destination directory exists; if not, create it
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        # Output the file
+        with open(file_path, "w") as output_file:
+            output_file.write(class_file_contents)
 
 
 if __name__ == '__main__':
