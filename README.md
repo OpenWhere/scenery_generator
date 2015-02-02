@@ -40,4 +40,7 @@ Scans all the online documentation and generates a property map, like so:
 }
 ```
 
-Still to do: convert this property map to Javascript class files
+TODO: Complete documentation
+
+## License
+This Software is licensed under the MIT license. See the LICENSE file.
