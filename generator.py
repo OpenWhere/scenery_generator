@@ -87,7 +87,7 @@ def create_class_file(class_name, property_map):
             '{', '{\n ').replace( \
             '}', '\n}')
 
-    with open ("./scenery_class_template.js", "r") as template_file:
+    with open ("./resource_type_template.js", "r") as template_file:
         # Read in the template, plugging in our values for the class
         template = template_file.read()
         class_file_contents = template % (formatted_pm, class_name)
