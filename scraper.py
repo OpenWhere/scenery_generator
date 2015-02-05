@@ -83,25 +83,38 @@ class Scraper(object):
                 for dd in dds:
                     ps = dd.findAll('p')
                     for p in ps:
-                        textContents = p.getText()
-                        if "Type:" in textContents:
-                            cleanText = re.sub(' +', ' ', textContents)\
+                        text_contents = p.getText()
+                        if "Type:" in text_contents:
+                            clean_text = re.sub(' +', ' ', text_contents)\
                                     .replace('Type:', '')\
                                     .replace('.', '')\
                                     .replace('\n', '').strip()
-                            if 'list of' in cleanText.lower():
+                            if 'list of' in clean_text.lower():
                                 property_dict['list'] = True
-                                cleanText = cleanText.lower()\
+                                clean_text = clean_text.lower()\
                                         .replace('a list of', '')\
                                         .replace('list of', '').strip().title()
                             if p.a:
                                 property_dict['href'] = p.a.get('href')
-                            property_dict['type'] = cleanText
+
+                            property_dict['type'] = self._get_type(clean_text)
 
                 property_types.append(property_dict)
             return property_types
 
         return None
+
+
+    def _get_type(self, type_string):
+        string = type_string.lower()
+        if 'string' in string:
+            return 'String'
+        if 'number' in string or 'integer' in string:
+            return 'Number'
+        if 'boolean' in string:
+            return 'Boolean'
+        return type_string
+
 
     def clean_property_map(self, json_string):
         """ Takes an invalid "JSON" string (retrieved from the get_property_list
