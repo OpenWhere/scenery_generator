@@ -47,6 +47,52 @@ class Scraper(object):
                 return None
         return None
 
+
+    def get_properties(self, page_url):
+        print("Fetching: %s" % page_url)
+        class_page = urlopen("%s/%s" % (self.docs_url, page_url))
+        if class_page:
+            property_types = []
+            soup = BeautifulSoup(class_page)
+            properties_list = soup.dl.contents
+
+            # Break the docs up into sections by property
+            sections = []
+            section = []
+            for item in properties_list:
+                if item.name == 'dt':
+                    if len(section) > 0:
+                        sections.append(section)
+                    section = []
+
+                section.append(item)
+
+            # Create a dictionary for each property type
+            for s in sections:
+                property_dict = {
+                    'name': s[0].getText(),
+                    'list': False
+                }
+                dds = s[1:]
+                for dd in dds:
+                    ps = dd.findAll('p')
+                    for p in ps:
+                        textContents = p.getText()
+                        if "Type:" in textContents:
+                            cleanText = textContents.replace('Type:', '').replace('.', '').strip()
+                            if 'list of' in cleanText.lower():
+                                property_dict['list'] = True
+                                cleanText = cleanText.lower().replace('list of', '').strip().title()
+                            if p.a:
+                                property_dict['type'] = p.a
+                            else:
+                                property_dict['type'] = cleanText
+
+                property_types.append(property_dict)
+            return property_types
+
+        return None
+
     def clean_property_map(self, json_string):
         """ Takes an invalid "JSON" string (retrieved from the get_property_list
         function) and creates dictionary from it.
