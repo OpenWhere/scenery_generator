@@ -29,26 +29,6 @@ class Scraper(object):
         return pages
 
 
-    def get_property_list(self, page_url):
-        """ Takes the given page_url and appends it to the docs_url.
-        From this new URL, extract the text from the code block.
-        Return the extracted code """
-
-        if 'aws' not in page_url or 'cfn' in page_url or '.html' not in page_url:
-            return None
-
-        print("Fetching: %s" % page_url)
-        class_page = urlopen("%s/%s" % (self.docs_url, page_url))
-        if class_page:
-            soup = BeautifulSoup(class_page)
-            properties = soup.find_all('pre')
-            if len(properties) > 0:
-                return properties[0].getText()
-            else:
-                return None
-        return None
-
-
     def get_properties(self, page_url):
         print("Fetching: %s" % page_url)
         class_page = urlopen("%s/%s" % (self.docs_url, page_url))
@@ -75,29 +55,30 @@ class Scraper(object):
             # Create a dictionary for each property type
             for s in sections:
                 property_dict = {
-                    'name': s[0].getText(),
+                    'href': None,
                     'list': False,
-                    'href': None
+                    'name': s[0].getText(),
+                    'type': 'String'
                 }
                 dds = s[1:]
                 for dd in dds:
                     ps = dd.findAll('p')
                     for p in ps:
                         text_contents = p.getText()
-                        if "Type:" in text_contents:
-                            clean_text = re.sub(' +', ' ', text_contents)\
-                                    .replace('Type:', '')\
-                                    .replace('.', '')\
-                                    .replace('\n', '').strip()
-                            if 'list of' in clean_text.lower():
-                                property_dict['list'] = True
-                                clean_text = clean_text.lower()\
-                                        .replace('a list of', '')\
-                                        .replace('list of', '').strip().title()
-                            if p.a:
-                                property_dict['href'] = p.a.get('href')
-
-                            property_dict['type'] = self._get_type(clean_text)
+                        if not "Type:" in text_contents:
+                            continue
+                        clean_text = re.sub(' +', ' ', text_contents)\
+                                .replace('Type:', '')\
+                                .replace('.', '')\
+                                .replace('\n', '').strip()
+                        if 'list of' in clean_text.lower():
+                            property_dict['list'] = True
+                            clean_text = clean_text.lower()\
+                                    .replace('a list of', '')\
+                                    .replace('list of', '').strip().title()
+                        if p.a:
+                            property_dict['href'] = p.a.get('href')
+                        property_dict['type'] = self._get_type(clean_text)
 
                 property_types.append(property_dict)
             return property_types
@@ -114,42 +95,3 @@ class Scraper(object):
         if 'boolean' in string:
             return 'Boolean'
         return type_string
-
-
-    def clean_property_map(self, json_string):
-        """ Takes an invalid "JSON" string (retrieved from the get_property_list
-        function) and creates dictionary from it.
-        Returns a dictionary representing the clean json_string """
-
-        lines = json_string.split("\n")
-
-        # Throw away the lines that arne't properties
-        property_lines = [l.strip() for l in lines \
-                if ':' in l \
-                and '::' not in l \
-                and 'Properties' not in l]
-
-        # Create a dict of the properties
-        property_map = {}
-        for l in property_lines:
-            properties = l.split(':')
-            key = properties[0].replace('"', '').strip()
-            value = properties[1].replace(',', '').strip()
-
-            # Identify property types
-            if 'JSON' in value:
-                property_map[key] = "Object"
-            elif '{' in value and ('String' in value or 'Ref' in value):
-                property_map[key] = "Ref"
-            elif '}' in value:
-                clean_value = value.replace('.', '').replace('{', '').replace('}', '').strip()
-                property_map[key] = 'ResourceProperty("%s")' % clean_value
-            elif ']' in value:
-                clean_value = value.replace('.', '').replace('[', '').replace(']', '').strip()
-                property_map[key] = 'Array("%s")' % clean_value
-            elif 'Integer' in value or 'Number' in value:
-                property_map[key] = "Number"
-            else:
-                property_map[key] = value
-
-        return property_map

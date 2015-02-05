@@ -15,11 +15,14 @@ def main():
 
     # For each AWS Type, retrieve the list of properties and generate class file
     for key, value in classes.items():
-        properties = scraper.get_property_list(value)
+        properties = scraper.get_properties(value)
         if properties:
-            property_map = scraper.clean_property_map(properties)
-            generator.create_class_file('./resource_type_template.js',
-                                        key, property_map)
+            try:
+                property_map = { p['name']: p['type'] for p in properties }
+                generator.create_class_file('./resource_type_template.js',
+                                            key, property_map)
+            except:
+                print("Failed to generate file for %s: %s" % (key, properties))
 
 
 if __name__ == '__main__':
