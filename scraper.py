@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 
-import os, pprint
+import os, pprint, re
 
 class Scraper(object):
     """ Class for retrieving AWS documentation """
@@ -23,7 +23,8 @@ class Scraper(object):
         for link in links:
             if not link.getText() or 'AWS' not in link.getText():
                 continue
-            pages[link.getText()] = link['href']
+            cleanKey = link.getText().replace('\n', '').replace(' ', '')
+            pages[cleanKey] = link['href']
 
         return pages
 
@@ -54,7 +55,11 @@ class Scraper(object):
         if class_page:
             property_types = []
             soup = BeautifulSoup(class_page)
-            properties_list = soup.dl.contents
+            try:
+                properties_list = soup.dl.contents
+            except:
+                print("No docs for page %s" % page_url)
+                return None
 
             # Break the docs up into sections by property
             sections = []
@@ -71,7 +76,8 @@ class Scraper(object):
             for s in sections:
                 property_dict = {
                     'name': s[0].getText(),
-                    'list': False
+                    'list': False,
+                    'href': None
                 }
                 dds = s[1:]
                 for dd in dds:
@@ -79,14 +85,18 @@ class Scraper(object):
                     for p in ps:
                         textContents = p.getText()
                         if "Type:" in textContents:
-                            cleanText = textContents.replace('Type:', '').replace('.', '').strip()
+                            cleanText = re.sub(' +', ' ', textContents)\
+                                    .replace('Type:', '')\
+                                    .replace('.', '')\
+                                    .replace('\n', '').strip()
                             if 'list of' in cleanText.lower():
                                 property_dict['list'] = True
-                                cleanText = cleanText.lower().replace('list of', '').strip().title()
+                                cleanText = cleanText.lower()\
+                                        .replace('a list of', '')\
+                                        .replace('list of', '').strip().title()
                             if p.a:
-                                property_dict['type'] = p.a
-                            else:
-                                property_dict['type'] = cleanText
+                                property_dict['href'] = p.a.get('href')
+                            property_dict['type'] = cleanText
 
                 property_types.append(property_dict)
             return property_types
