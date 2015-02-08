@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 
 from generator import Generator
 from scraper import Scraper
@@ -20,7 +20,7 @@ def main():
         if properties:
             property_types[key] = properties
 
-    file_path = os.path.join(CURRENT_DIR, "aws_properties_map.json")
+    file_path = os.path.join(CURRENT_DIR, "aws_resources_map.json")
     with open(file_path, "w") as output_file:
         json.dump(property_types, output_file, sort_keys=True, indent=2)
 

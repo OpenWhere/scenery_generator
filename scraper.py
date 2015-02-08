@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from urllib.request import urlopen
+from urllib import urlopen
 
 import os, pprint, re
 
@@ -21,7 +21,7 @@ class Scraper(object):
         # Parse the list of all classes to get names and URLS
         pages = {}
         for link in links:
-            if not link.getText() or 'AWS' not in link.getText():
+            if not link.getText():
                 continue
             cleanKey = link.getText().replace('\n', '').replace(' ', '')
             pages[cleanKey] = link['href']
@@ -67,7 +67,7 @@ class Scraper(object):
                         text_contents = p.getText()
                         if not "Type:" in text_contents:
                             continue
-                        clean_text = re.sub(' +', ' ', text_contents)\
+                        clean_text = re.sub(' +', '', text_contents)\
                                 .replace('Type:', '')\
                                 .replace('.', '')\
                                 .replace('\n', '').strip()
