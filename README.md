@@ -11,6 +11,7 @@ cd /path/to/scenery-generator/environment/
 git clone ...
 source /path/to/scenery-generator/environment/bin/activate
 pip install beautifulsoup4
+pip install -e git+https://github.com/pwdyson/inflect.py#egg=inflect
 ```
 
 ## Usage
@@ -22,37 +23,33 @@ This library contains two classes:
     contents page of the amazon docs. Returns a dict in the format:
 
 ```python
-{ 'AWS::Resrouce::Type': 'url_to_page.html', ...}
+{ 'AWS::Resrouce::Type': BeautifulSoupObject, ...}
 ```
 
-   - **`get_properties`:** Accepts a URL of a page to a specific Resource
-   (Property) Type, and parses it to find all of the types. Returns a list of
-   dicts representing each property. For example:
+   - **`get_properties`:** Accepts a BeautifulSoup object representing the
+   (Property) Type documentation page, and parses it to find all of the types.
+   Returns a list of dicts representing each property. For example:
 
 ```python
 [{
-  "href": null,
   "list": false,
   "name": "Description",
   "type": "String"
 },
 {
-  "href": null,
   "list": true,
   "name": "GroupSet",
   "type": "String"
 },
 {
-  "href": null,
   "list": false,
   "name": "PrivateIpAddress",
   "type": "String"
 },
 {
-  "href": "aws-properties-ec2-network-interface-privateipspec.html",
   "list": true,
   "name": "PrivateIpAddresses",
-  "type": "Privateipaddressspecification"
+  "type": "PrivateIpAddress"
 },
 ... ]
 ```

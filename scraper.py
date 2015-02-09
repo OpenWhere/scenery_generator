@@ -12,7 +12,7 @@ class Scraper(object):
     def get_documentation_pages(self, toc_page):
         """ Given a URL representing the table of contents, find every link
         on the page map its text to it's href
-        Returns a dictionary in the format { "link text": "docs_page.html", ...}
+        Returns a dictionary in the format { "link text": docs_page_soup, ...}
         """
         docs_page = urlopen('%s/%s' % (self.docs_url, toc_page))
         soup = BeautifulSoup(docs_page)
@@ -23,28 +23,58 @@ class Scraper(object):
         for link in links:
             if not link.getText():
                 continue
-            title = link.getText().replace('\n', '').replace(' ', '')
-            href = link['href'].replace('.html', '').strip()
-            clean_key = "%s (%s)" % (title, href)
-            pages[clean_key] = link['href']
+
+            soup = self.get_soup(link['href'])
+            if not soup:
+                continue
+
+            friendly_name = self.get_type_title_and_reference(link)
+            pages[friendly_name] = soup
 
         return pages
 
 
-    def get_properties(self, page_url):
+    def get_type_map_from_soup(self, docs_page_dict):
+        """
+        For the given docs page dict ({'href': soup, ...}), generate a type map
+        of all property/resource types in the docs_page_dict
+        """
+        type_map = {}
+        for key, value in docs_page_dict.items():
+            properties = self.get_properties(value)
+            if properties:
+                type_map[key] = properties
+
+        return type_map
+
+
+    def get_soup(self, page_url):
         print('Fetching: %s' % page_url)
         class_page = urlopen('%s/%s' % (self.docs_url, page_url))
 
         if not class_page:
             return None
+        try:
+            return BeautifulSoup(class_page)
+        except:
+            print('Failed to soupify %s' % page_url)
+            return None
 
+
+    def get_type_title_and_reference(self, link):
+        href = link['href'].replace('.html', '').strip()
+        return href
+        #title = link.getText().replace('\n', '').replace(' ', '')
+        #clean_key = "%s (%s)" % (title, href)
+        #return clean_key
+
+
+    def get_properties(self, soup):
         property_types = []
-        soup = BeautifulSoup(class_page)
         try:
             properties_list = soup.find('div', { 'class' : 'variablelist' }).findAll('dt')
             properties_info = soup.find('div', { 'class' : 'variablelist' }).findAll('dd')
         except:
-            print('No docs for page %s' % page_url)
             return None
 
         for i in xrange(len(properties_list)):
