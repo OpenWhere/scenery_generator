@@ -24,7 +24,7 @@ class Generator(object):
         p = inflect.engine()
         for key, values in all_types.iteritems():
             for prop in values:
-                if '-' in prop['type']:
+                if '_' in prop['type']:
                     friendly_name = p.singular_noun(prop['name'])
                     if not friendly_name:
                         friendly_name = prop['name']
