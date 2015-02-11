@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
-from urllib import urlopen
+from urllib import urlopen, urlretrieve
 
-import os, pprint, re
+import os, pickle, re
 
 class Scraper(object):
     """ Class for retrieving AWS documentation """
@@ -9,27 +9,65 @@ class Scraper(object):
         self.docs_url = docs_url
 
 
-    def get_documentation_pages(self, toc_page):
-        """ Given a URL representing the table of contents, find every link
-        on the page map its text to it's href
-        Returns a dictionary in the format { "link text": docs_page_soup, ...}
-        """
+    def cache_documentation_pages(self, toc_page, output_dir):
         docs_page = urlopen('%s/%s' % (self.docs_url, toc_page))
         soup = BeautifulSoup(docs_page)
         links = soup.find('div', { 'class' : 'highlights' }).findAll('a')
 
         # Parse the list of all classes to get names and URLS
-        pages = {}
+        table_of_contents = {}
         for link in links:
             if not link.getText():
                 continue
+
+            filename = os.path.join(output_dir, link['href'])
+            print("Caching file %s" % filename)
+            urlretrieve("%s/%s" % (self.docs_url, link['href']), filename)
 
             soup = self.get_soup(link['href'])
             if not soup:
                 continue
 
             friendly_name = self.get_type_title_and_reference(link)
-            pages[friendly_name] = soup
+            table_of_contents[friendly_name] = filename
+
+        # Save the table of contents
+        toc_filepath = os.path.join(output_dir, 'toc.pickle')
+        with open(toc_filepath, 'wb') as toc_file:
+            pickle.dump(table_of_contents, toc_file)
+
+
+    def get_documentation_pages(self, toc_page, cache_dir=None):
+        """ Given a URL representing the table of contents, find every link
+        on the page map its text to it's href
+        Returns a dictionary in the format { "link text": docs_page_soup, ...}
+        """
+        pages = {}
+        if cache_dir:
+            # Get soup objects from the cached documentation
+            with open(os.path.join(cache_dir, 'toc.pickle'), 'r') as toc_file:
+                pages = pickle.load(toc_file)
+
+            for name, path in pages.iteritems():
+                print("Reading %s from the cache" % name)
+                soup = BeautifulSoup(open(path))
+                pages[name] = soup
+        else:
+            # Get soup objects from online documentation
+            docs_page = urlopen('%s/%s' % (self.docs_url, toc_page))
+            soup = BeautifulSoup(docs_page)
+            links = soup.find('div', { 'class' : 'highlights' }).findAll('a')
+
+            for link in links:
+                if not link.getText():
+                    continue
+
+                soup = self.get_soup(link['href'])
+                if not soup:
+                    continue
+
+                friendly_name = self.get_type_title_and_reference(link)
+                pages[friendly_name] = soup
 
         return pages
 
