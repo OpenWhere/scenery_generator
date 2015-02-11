@@ -62,11 +62,14 @@ class Scraper(object):
 
 
     def get_type_title_and_reference(self, link):
+        title = link.getText().replace('\n', '').replace(' ', '')
         href = link['href'].replace('.html', '').strip()
+
+        # For Resource Types, we need the pretty name
+        if ':' in title:
+            return title
+
         return href
-        #title = link.getText().replace('\n', '').replace(' ', '')
-        #clean_key = "%s (%s)" % (title, href)
-        #return clean_key
 
 
     def get_properties(self, soup):

@@ -1,11 +1,48 @@
-from scraper import Scraper
-import os, pprint
+import collections, inflect
+import json, os, pprint
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Generator(object):
     def __init__(self):
         pass
+
+
+    def build_friendly_lookup_table(self, property_types, resource_types):
+        """
+        Takes the property_types map and the resource_types map and builds a
+        lookup table of friendly names, keeping track of the duplicates.
+        Returns two objects:
+        + Dict of lookup table in format {'aws-href': 'Friendly Name', ...}
+        + List of friendly names known to be duplicates
+        """
+        all_types = dict(property_types.items() + resource_types.items())
+
+        # Create a lookup table of friendly names for all property types,
+        # converting plural nouns to their singular form
+        lookup_table = {}
+        p = inflect.engine()
+        for key, values in all_types.iteritems():
+            for prop in values:
+                if '-' in prop['type']:
+                    friendly_name = p.singular_noun(prop['name'])
+                    if not friendly_name:
+                        friendly_name = prop['name']
+                    lookup_table[prop['type']] = friendly_name
+
+        friendly_names = lookup_table.values()
+        duplicate_names = [x for x, y in collections.Counter(friendly_names).items() if y > 1]
+        return (lookup_table, duplicate_names)
+
+
+    def write_property_map(self, filename, property_types):
+        """
+        Accepts a property_types map and outputs it as JSON
+        """
+        file_path = os.path.join(CURRENT_DIR, filename)
+        with open(file_path, "w") as output_file:
+            json.dump(property_types, output_file, sort_keys=True, indent=2)
+
 
     def create_class_file(self, template, class_name, property_map):
         """ Generates a scenery class file.

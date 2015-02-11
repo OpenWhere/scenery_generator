@@ -2,4 +2,4 @@ __pycache__/*
 output/*
 *.swp
 *.pyc
-aws_properties_map.json
+*.json

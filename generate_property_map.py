@@ -2,8 +2,7 @@
 
 from generator import Generator
 from scraper import Scraper
-import collections, json, os
-import inflect
+import os
 
 DOCS_URL = "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/"
 PROPERTY_TYPES_CONTENTS_PAGE = "aws-product-property-reference.html"
@@ -12,7 +11,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def main():
-    generator = Generator()
     scraper = Scraper(DOCS_URL)
     property_doc = scraper.get_documentation_pages(PROPERTY_TYPES_CONTENTS_PAGE)
     resource_doc = scraper.get_documentation_pages(RESOURCE_TYPES_CONTENTS_PAGE)
@@ -20,8 +18,11 @@ def main():
     property_type_map = scraper.get_type_map_from_soup(property_doc)
     resource_type_map = scraper.get_type_map_from_soup(resource_doc)
 
-    clean_property_map = clean_property_type_names(property_type_map, resource_type_map)
-    write_property_map(clean_property_map)
+    clean_property_map = clean_property_type_names(
+            property_type_map, resource_type_map)
+
+    generator = Generator()
+    generator.write_property_map('aws_properties_map.json', clean_property_map)
 
 
 
@@ -32,22 +33,9 @@ def clean_property_type_names(property_types, resource_types):
     reconstruct the map with friendly names.
     Returns a propety_types map with friendly names as the key
     """
-    all_types = dict(property_types.items() + resource_types.items())
-
-    # Create a lookup table of friendly names for all property types,
-    # converting plural nouns to their singular form
-    lookup_table = {}
-    p = inflect.engine()
-    for key, values in all_types.iteritems():
-        for prop in values:
-            if '-' in prop['type']:
-                friendly_name = p.singular_noun(prop['name'])
-                if not friendly_name:
-                    friendly_name = prop['name']
-                lookup_table[prop['type']] = friendly_name
-
-    friendly_names = lookup_table.values()
-    duplicate_names = [x for x, y in collections.Counter(friendly_names).items() if y > 1]
+    generator = Generator()
+    lookup_table, duplicate_names = generator.build_friendly_lookup_table(
+            property_types, resource_types)
 
     # For all PROPERTY types (because we only care about beautifying these),
     # look up the friendly name from the lookup table we constructed
@@ -78,16 +66,7 @@ def clean_property_type_names(property_types, resource_types):
             new_values.append(prop)
         immaculate_property_types[key] = new_values
 
-    return clean_property_types
-
-
-def write_property_map(property_types):
-    """
-    Accepts a property_types map and outputs it as JSON
-    """
-    file_path = os.path.join(CURRENT_DIR, "aws_properties_map.json")
-    with open(file_path, "w") as output_file:
-        json.dump(property_types, output_file, sort_keys=True, indent=2)
+    return immaculate_property_types
 
 
 if __name__ == '__main__':
