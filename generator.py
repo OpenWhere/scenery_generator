@@ -44,8 +44,25 @@ class Generator(object):
             json.dump(property_types, output_file, sort_keys=True, indent=2)
 
 
-    def create_class_file(self, template, class_name, property_map):
-        """ Generates a scenery class file.
+    def read_property_map(self, filename):
+        """
+        Accepts a file path to a JSON file
+        Parses the file and returns the resulting dict
+        """
+        file_path = os.path.join(CURRENT_DIR, filename)
+        with open(file_path, "r") as output_file:
+            data = json.load(output_file, object_hook=self.encode_dict_in_ascii)
+            return data
+
+
+    def encode_dict_in_ascii(self, data):
+        ascii_encode = lambda x: x.encode('ascii') \
+                if isinstance(x, unicode) else x
+        return dict(map(ascii_encode, pair) for pair in data.items())
+
+
+    def create_resource_class_file(self, template, class_name, property_map):
+        """ Generates a scenery resource class file.
         template: file path to the scenery class template file
         class_name: AWS class name in the format AWS::DynamoDB::Table
         property_map: Dict represneting property types of the above class """
