@@ -2,7 +2,7 @@
 
 from generator import Generator
 from scraper import Scraper
-import os, json
+import os
 
 DOCS_URL = "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/"
 PROPERTY_TYPES_CONTENTS_PAGE = "aws-product-property-reference.html"
@@ -12,8 +12,15 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def main():
     scraper = Scraper(DOCS_URL)
-    property_doc = scraper.get_documentation_pages(PROPERTY_TYPES_CONTENTS_PAGE)
-    resource_doc = scraper.get_documentation_pages(RESOURCE_TYPES_CONTENTS_PAGE)
+    property_cache_dir = None
+    resource_cache_dir = None
+
+    # Uncomment the following lines if you have cached docs you wish to use
+    #property_cache_dir = os.path.join(CURRENT_DIR, 'cache/properties')
+    #resource_cache_dir = os.path.join(CURRENT_DIR, 'cache/resources')
+
+    property_doc = scraper.get_documentation_pages(PROPERTY_TYPES_CONTENTS_PAGE, property_cache_dir)
+    resource_doc = scraper.get_documentation_pages(RESOURCE_TYPES_CONTENTS_PAGE, resource_cache_dir)
 
     property_type_map = scraper.get_type_map_from_soup(property_doc)
     resource_type_map = scraper.get_type_map_from_soup(resource_doc)
