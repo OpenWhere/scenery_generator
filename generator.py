@@ -77,16 +77,43 @@ class Generator(object):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        # Generate the class file
-        formatted_pm = pprint.pformat(property_map, indent=4, width=100).replace( \
-                '{', '{\n ').replace( \
-                '}', '\n}')
+        # Generate the require statements
+        require_statements, non_primitives = self.get_require_statements(\
+                property_map)
+
+        # Generate the formatted property map
+        formatted_pm = pprint.pformat(property_map, indent=4, width=100)\
+                .replace( '{', '{\n ')\
+                .replace( '}', '\n}')
+
+        # All non-primitives need to have quotes removed from around them
+        for np in non_primitives:
+            formatted_pm = formatted_pm.replace(": '%s'" % np, ": %s" % np)
 
         with open (template, "r") as template_file:
             # Read in the template, plugging in our values for the class
             template = template_file.read()
-            class_file_contents = template % (formatted_pm, class_name)
+            class_file_contents = template % (require_statements,
+                    formatted_pm, class_name)
 
             # Write the file to the output directory
             with open(file_path, "w") as output_file:
                 output_file.write(class_file_contents)
+
+    def get_require_statements(self, property_map):
+        primitives = ['String', 'Number', 'Boolean', 'Object']
+        statement = "var {0} = require('../properties/{0}.js');"
+        non_primitives = []
+        require_statements = []
+        for value in property_map.values():
+            clean_value = value.replace('"', '').strip()
+            if clean_value not in primitives:
+                non_primitives.append(clean_value)
+                require_statement = statement.format(clean_value)
+                require_statements.append(require_statement)
+
+        if non_primitives:
+            require_statements = "\n".join(require_statements)
+            return require_statements, non_primitives
+        else:
+            return None, non_primitives

@@ -15,6 +15,8 @@
 'use strict';
 
 var Resource = require('../Resource.js');
+%s
+
 var propertyMap = %s;
 var Class = function (id) {
     return Resource.call(this, id, '%s', {});
