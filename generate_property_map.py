@@ -48,14 +48,15 @@ def clean_property_type_names(property_types, resource_types):
     # look up the friendly name from the lookup table we constructed
     clean_property_types = {}
     for key, value in property_types.iteritems():
-        if not key in lookup_table:
-            print("%s not found in lookup table" % key)
-            clean_property_types[key] = value
+        newKey = key.replace('-', '_')
+        if not newKey in lookup_table:
+            print("%s not found in lookup table" % newKey)
+            clean_property_types[newKey] = value
             continue
-        friendly_name = lookup_table[key]
+        friendly_name = lookup_table[newKey]
         if friendly_name in duplicate_names:
             print("%s is a duplicate" % friendly_name)
-            clean_property_types[key] = value
+            clean_property_types[newKey] = value
         else:
             clean_property_types[friendly_name] = value
 

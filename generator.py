@@ -24,7 +24,7 @@ class Generator(object):
         p = inflect.engine()
         for key, values in all_types.iteritems():
             for prop in values:
-                if '_' in prop['type']:
+                if '_' in prop['type'] or '-' in prop['type']:
                     friendly_name = p.singular_noun(prop['name'])
                     if not friendly_name:
                         friendly_name = prop['name']
@@ -32,7 +32,7 @@ class Generator(object):
 
         friendly_names = lookup_table.values()
         duplicate_names = [x for x, y in collections.Counter(friendly_names).items() if y > 1]
-        return (lookup_table, duplicate_names)
+        return (self.encode_dict_in_ascii(lookup_table), duplicate_names)
 
 
     def write_property_map(self, filename, property_types):
@@ -66,14 +66,27 @@ class Generator(object):
         template: file path to the scenery class template file
         class_name: AWS class name in the format AWS::DynamoDB::Table
         property_map: Dict represneting property types of the above class """
-
         class_array = class_name.split('::')
-        if len(class_array) < 2:
+        if len(class_array) < 3:
             return None
 
-        # Check to see if output directory exists; create it if not
+        class_name = class_array[2]
         output_dir = os.path.join(CURRENT_DIR, 'output', class_array[1])
-        file_path = os.path.join(output_dir, class_array[2] + ".js")
+        file_path = os.path.join(output_dir, class_name + ".js")
+        return self.create_and_write_template(
+                class_name, property_map, template, output_dir, file_path)
+
+
+    def create_property_class_file(self, template, class_name, property_map):
+        output_dir = os.path.join(CURRENT_DIR, 'output', 'properties')
+        file_path = os.path.join(output_dir, class_name + ".js")
+        return self.create_and_write_template(
+                class_name, property_map, template, output_dir, file_path)
+
+
+    def create_and_write_template(self, class_name, property_map, template_path, output_dir, file_path):
+
+        # Check to see if output directory exists; create it if not
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -90,7 +103,7 @@ class Generator(object):
         for np in non_primitives:
             formatted_pm = formatted_pm.replace(": '%s'" % np, ": %s" % np)
 
-        with open (template, "r") as template_file:
+        with open (template_path, "r") as template_file:
             # Read in the template, plugging in our values for the class
             template = template_file.read()
             class_file_contents = template % (require_statements,
@@ -116,4 +129,4 @@ class Generator(object):
             require_statements = "\n".join(require_statements)
             return require_statements, non_primitives
         else:
-            return None, non_primitives
+            return '', non_primitives
