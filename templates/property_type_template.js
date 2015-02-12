@@ -14,6 +14,7 @@
 
 'use strict';
 
+// TODO: Create a Property base class so properties don't extend Resource!
 var Resource = require('../Resource.js');
 %s
 
@@ -21,6 +22,7 @@ var propertyMap = %s;
 var Class = function (id) {
     return Resource.call(this, id, '%s', {});
 };
+// TODO: Create a Property base class so properties don't extend Resource!
 require('util').inherits(Class, Resource);
 
 // TODO: Update registerPropertyPrototypes to accommodate property types

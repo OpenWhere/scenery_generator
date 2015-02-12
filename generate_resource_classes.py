@@ -4,8 +4,6 @@ from generator import Generator
 from scraper import Scraper
 import os, pprint
 
-DOCS_URL = "http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/"
-CONTENTS_PAGE = "aws-template-resource-type-ref.html"
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
