@@ -141,7 +141,10 @@ class Scraper(object):
                     clean_text = re.sub('a*\s*list\s*(of)*', '', clean_text)\
                             .strip().title()
                 if p.a:
-                    clean_text = p.a.get('href').replace('.html','').strip()
+                    clean_text = p.a.get('href')\
+                            .replace('.html','')\
+                            .replace('-', '_')\
+                            .strip()
                 property_dict['type'] = self._get_type(clean_text)
 
             property_types.append(property_dict)

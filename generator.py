@@ -24,7 +24,7 @@ class Generator(object):
         p = inflect.engine()
         for key, values in all_types.iteritems():
             for prop in values:
-                if '-' in prop['type']:
+                if '_' in prop['type']:
                     friendly_name = p.singular_noun(prop['name'])
                     if not friendly_name:
                         friendly_name = prop['name']
@@ -44,8 +44,25 @@ class Generator(object):
             json.dump(property_types, output_file, sort_keys=True, indent=2)
 
 
-    def create_class_file(self, template, class_name, property_map):
-        """ Generates a scenery class file.
+    def read_property_map(self, filename):
+        """
+        Accepts a file path to a JSON file
+        Parses the file and returns the resulting dict
+        """
+        file_path = os.path.join(CURRENT_DIR, filename)
+        with open(file_path, "r") as output_file:
+            data = json.load(output_file, object_hook=self.encode_dict_in_ascii)
+            return data
+
+
+    def encode_dict_in_ascii(self, data):
+        ascii_encode = lambda x: x.encode('ascii') \
+                if isinstance(x, unicode) else x
+        return dict(map(ascii_encode, pair) for pair in data.items())
+
+
+    def create_resource_class_file(self, template, class_name, property_map):
+        """ Generates a scenery resource class file.
         template: file path to the scenery class template file
         class_name: AWS class name in the format AWS::DynamoDB::Table
         property_map: Dict represneting property types of the above class """
@@ -60,16 +77,43 @@ class Generator(object):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        # Generate the class file
-        formatted_pm = pprint.pformat(property_map, indent=4, width=100).replace( \
-                '{', '{\n ').replace( \
-                '}', '\n}')
+        # Generate the require statements
+        require_statements, non_primitives = self.get_require_statements(\
+                property_map)
+
+        # Generate the formatted property map
+        formatted_pm = pprint.pformat(property_map, indent=4, width=100)\
+                .replace( '{', '{\n ')\
+                .replace( '}', '\n}')
+
+        # All non-primitives need to have quotes removed from around them
+        for np in non_primitives:
+            formatted_pm = formatted_pm.replace(": '%s'" % np, ": %s" % np)
 
         with open (template, "r") as template_file:
             # Read in the template, plugging in our values for the class
             template = template_file.read()
-            class_file_contents = template % (formatted_pm, class_name)
+            class_file_contents = template % (require_statements,
+                    formatted_pm, class_name)
 
             # Write the file to the output directory
             with open(file_path, "w") as output_file:
                 output_file.write(class_file_contents)
+
+    def get_require_statements(self, property_map):
+        primitives = ['String', 'Number', 'Boolean', 'Object']
+        statement = "var {0} = require('../properties/{0}.js');"
+        non_primitives = []
+        require_statements = []
+        for value in property_map.values():
+            clean_value = value.replace('"', '').strip()
+            if clean_value not in primitives:
+                non_primitives.append(clean_value)
+                require_statement = statement.format(clean_value)
+                require_statements.append(require_statement)
+
+        if non_primitives:
+            require_statements = "\n".join(require_statements)
+            return require_statements, non_primitives
+        else:
+            return None, non_primitives
