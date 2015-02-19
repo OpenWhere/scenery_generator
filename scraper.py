@@ -122,7 +122,7 @@ class Scraper(object):
             name = properties_list[i].getText()
             property_dict = {
                 'list': False,
-                'name': name,
+                'name': self._clean_name(name),
                 'type': 'String'
             }
             ps = properties_info[i].findAll('p')
@@ -145,10 +145,38 @@ class Scraper(object):
                             .replace('.html','')\
                             .replace('-', '_')\
                             .strip()
-                property_dict['type'] = self._get_type(clean_text)
+
+                clean_type = self._get_type(clean_text)
+                if self._is_exceptional_type(clean_type):
+                    property_dict['type'] = 'String'
+                else:
+                    property_dict['type'] = clean_type
 
             property_types.append(property_dict)
         return property_types
+
+
+    def _clean_name(self, name_string):
+        """ Removes spaces and parenthetical statements from names """
+        clean_name = re.sub('\(.*', '', name_string)
+        clean_name = re.sub('\s', '', clean_name)
+        return clean_name
+
+
+    def _is_exceptional_type(self, type_string):
+        """
+        This function checks whether or not type_string is a problem child and,
+        if so, converts the type to "String." There were a couple types in the
+        documentation that are not properly defined (and therefore can't be
+        parsed), but String appears to be the valid type for all of them.
+        """
+        if 'Youcannotcreate' in type_string:
+            return True
+        if 'curitygroup' in type_string:
+            return True
+        if 'referencestoawsiamroles' in type_string:
+            return True
+        return False
 
 
     def _get_type(self, type_string):
