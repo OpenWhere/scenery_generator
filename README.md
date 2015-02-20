@@ -62,4 +62,5 @@ See `generate_property_map.py` for an example of how to use this class.
   `generate_resource_types` for an example of how to use this class.
 
 ## License
-This Software is licensed under the MIT license. See the LICENSE file.
+This Software is licensed under the Apache 2.0 license. See the LICENSE file for
+details.
