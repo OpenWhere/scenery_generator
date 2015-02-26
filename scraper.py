@@ -131,21 +131,27 @@ class Scraper(object):
                 if not "Type" in text_contents:
                     continue
                 clean_text = re.sub(' +', '', text_contents)\
-                        .replace('Type', '')\
-                        .replace('.', '')\
-                        .replace(':', '')\
-                        .replace('\n', '').strip()
+                            .replace('Type', '')\
+                            .replace('.', '')\
+                            .replace(':', '')\
+                            .replace('\n', '').strip()
                 if 'list' in clean_text.lower():
                     property_dict['list'] = True
                     lower_text = clean_text.lower()
                     clean_text = re.sub('a*\s*list\s*(of)*', '', clean_text)\
-                            .strip().title()
+                                .strip().title()
                 if p.a:
                     clean_text = p.a.get('href')\
-                            .replace('.html','')\
-                            .replace('-', '_')\
-                            .strip()
+                                .replace('.html','')\
+                                .replace('-', '_')\
+                                .strip()
                 property_dict['type'] = self._get_type(clean_text)
+
+                # Field-specific types
+                if name == 'Attributes':
+                    property_dict['list'] = False
+                    property_dict['type'] = 'Object'
+
 
             property_types.append(property_dict)
         return property_types
@@ -159,4 +165,6 @@ class Scraper(object):
             return 'Number'
         if 'boolean' in string:
             return 'Boolean'
+        if 'json' in string:
+            return 'Object'
         return type_string
