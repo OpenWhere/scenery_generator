@@ -96,8 +96,7 @@ class Generator(object):
 
         # Generate the formatted property map
         formatted_pm = pprint.pformat(property_map, indent=4, width=100)\
-                .replace( '{', '{\n ')\
-                .replace( '}', '\n}')
+                .replace("   '", "'")
 
         # All non-primitives need to have quotes removed from around them
         for np in non_primitives:
@@ -119,7 +118,7 @@ class Generator(object):
         non_primitives = []
         require_statements = []
         for value in property_map.values():
-            clean_value = value.replace('"', '').strip()
+            clean_value = value['type'].replace('"', '').strip()
             if clean_value not in primitives:
                 non_primitives.append(clean_value)
                 require_statement = statement.format(clean_value)
