@@ -96,7 +96,9 @@ class Generator(object):
 
         # Generate the formatted property map
         formatted_pm = pprint.pformat(property_map, indent=4, width=100)\
-                .replace("   '", "'")
+                .replace("   '", "'")\
+                .replace('True', 'true')\
+                .replace('False', 'false')
 
         # All non-primitives need to have quotes removed from around them
         for np in non_primitives:
