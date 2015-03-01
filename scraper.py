@@ -123,7 +123,7 @@ class Scraper(object):
             property_dict = {
                 'list': False,
                 'name': name,
-                'type': 'String'
+                'type': 'string'
             }
             ps = properties_info[i].findAll('p')
             for p in ps:
@@ -150,11 +150,11 @@ class Scraper(object):
                 # Field-specific types
                 if name == 'Attributes':
                     property_dict['list'] = False
-                    property_dict['type'] = 'Object'
+                    property_dict['type'] = 'object'
 
                 clean_type = self._get_type(clean_text)
                 if self._is_exceptional_type(clean_type):
-                    property_dict['type'] = 'String'
+                    property_dict['type'] = 'string'
                 else:
                     property_dict['type'] = clean_type
 
@@ -172,9 +172,9 @@ class Scraper(object):
     def _is_exceptional_type(self, type_string):
         """
         This function checks whether or not type_string is a problem child and,
-        if so, converts the type to "String." There were a couple types in the
+        if so, converts the type to "string." There were a couple types in the
         documentation that are not properly defined (and therefore can't be
-        parsed), but String appears to be the valid type for all of them.
+        parsed), but string appears to be the valid type for all of them.
         """
         if 'Youcannotcreate' in type_string:
             return True
@@ -187,11 +187,11 @@ class Scraper(object):
     def _get_type(self, type_string):
         string = type_string.lower()
         if 'string' in string:
-            return 'String'
+            return 'string'
         if 'number' in string or 'integer' in string:
-            return 'Number'
+            return 'number'
         if 'boolean' in string:
-            return 'Boolean'
+            return 'boolean'
         if 'json' in string:
-            return 'Object'
+            return 'object'
         return type_string

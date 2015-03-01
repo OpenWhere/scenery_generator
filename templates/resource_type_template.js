@@ -24,6 +24,5 @@ var Class = function (id) {
 };
 require('util').inherits(Class, Resource);
 
-// TODO: Update registerPropertyPrototypes to accommodate property types
 Class = Resource.registerPropertyPrototypes(Class, propertyMap);
 module.exports = Class;
