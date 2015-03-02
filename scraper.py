@@ -176,13 +176,18 @@ class Scraper(object):
         documentation that are not properly defined (and therefore can't be
         parsed), but string appears to be the valid type for all of them.
         """
-        if 'Youcannotcreate' in type_string:
-            return True
-        if 'curitygroup' in type_string:
-            return True
-        if 'referencestoawsiamroles' in type_string:
-            return True
+        exceptional_strings = [
+            'Youcannotcreate',
+            'anemptymap',
+            'curitygroup',
+            'referencestoawsiamroles',
+        ]
+        for es in exceptional_strings:
+            if es in type_string:
+                return True
+
         return False
+
 
     def _get_type(self, type_string):
         string = type_string.lower()
