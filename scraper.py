@@ -181,6 +181,11 @@ class Scraper(object):
             'anemptymap',
             'curitygroup',
             'referencestoawsiamroles',
+
+            # These may need to be objects
+            'aws_properties_name',
+            'RefID',
+            'Aamazonsnstopicsarns',
         ]
         for es in exceptional_strings:
             if es in type_string:
