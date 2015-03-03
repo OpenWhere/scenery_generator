@@ -115,7 +115,7 @@ class Generator(object):
                 output_file.write(class_file_contents)
 
     def get_require_statements(self, property_map):
-        primitives = ['String', 'Number', 'Boolean', 'Object']
+        primitives = ['string', 'number', 'boolean', 'object']
         statement = "var {0} = require('../properties/{0}.js');"
         non_primitives = []
         require_statements = []

@@ -26,6 +26,5 @@ var Class = function (id) {
 // TODO: Create a Property base class so properties don't extend Resource!
 require('util').inherits(Class, Resource);
 
-// TODO: Update registerPropertyPrototypes to accommodate property types
 Class = Resource.registerPropertyPrototypes(Class, propertyMap);
 module.exports = Class;
