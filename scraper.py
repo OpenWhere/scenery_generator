@@ -188,11 +188,16 @@ class Scraper(object):
 
 
     def _is_object_type(self, type_string):
+        """
+        Handle edge-case types that should be objects
+        """
         exceptional_strings = [
             'Attribute',
             'aws_properties_name',
             'RefID',
             'Aamazonsnstopicsarns',
+            'LoginProfiletype',
+            'ExampleNetbiosNode2',
         ]
         for es in exceptional_strings:
             if es in type_string:
@@ -203,10 +208,7 @@ class Scraper(object):
 
     def _is_string_type(self, type_string):
         """
-        This function checks whether or not type_string is a problem child and,
-        if so, converts the type to "string." There were a couple types in the
-        documentation that are not properly defined (and therefore can't be
-        parsed), but string appears to be the valid type for all of them.
+        Handle edge-case types that should be strings
         """
         exceptional_strings = [
             'Youcannotcreate',
@@ -214,6 +216,8 @@ class Scraper(object):
             'curitygroup',
             'referencestoawsiamroles',
             'Timestamp',
+            'Listofroutetableids',
+            'Listofusers',
         ]
         for es in exceptional_strings:
             if es in type_string:
