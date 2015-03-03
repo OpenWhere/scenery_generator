@@ -122,7 +122,7 @@ class Scraper(object):
             name = properties_list[i].getText()
             property_dict = {
                 'list': False,
-                'name': self._clean_name(name),
+                'name': name,
                 'type': 'String'
             }
             ps = properties_info[i].findAll('p')
@@ -131,20 +131,26 @@ class Scraper(object):
                 if not "Type" in text_contents:
                     continue
                 clean_text = re.sub(' +', '', text_contents)\
-                        .replace('Type', '')\
-                        .replace('.', '')\
-                        .replace(':', '')\
-                        .replace('\n', '').strip()
+                            .replace('Type', '')\
+                            .replace('.', '')\
+                            .replace(':', '')\
+                            .replace('\n', '').strip()
                 if 'list' in clean_text.lower():
                     property_dict['list'] = True
                     lower_text = clean_text.lower()
                     clean_text = re.sub('a*\s*list\s*(of)*', '', clean_text)\
-                            .strip().title()
+                                .strip().title()
                 if p.a:
                     clean_text = p.a.get('href')\
-                            .replace('.html','')\
-                            .replace('-', '_')\
-                            .strip()
+                                .replace('.html','')\
+                                .replace('-', '_')\
+                                .strip()
+                property_dict['type'] = self._get_type(clean_text)
+
+                # Field-specific types
+                if name == 'Attributes':
+                    property_dict['list'] = False
+                    property_dict['type'] = 'Object'
 
                 clean_type = self._get_type(clean_text)
                 if self._is_exceptional_type(clean_type):
@@ -178,7 +184,6 @@ class Scraper(object):
             return True
         return False
 
-
     def _get_type(self, type_string):
         string = type_string.lower()
         if 'string' in string:
@@ -187,4 +192,6 @@ class Scraper(object):
             return 'Number'
         if 'boolean' in string:
             return 'Boolean'
+        if 'json' in string:
+            return 'Object'
         return type_string
