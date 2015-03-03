@@ -5,7 +5,10 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Generator(object):
     def __init__(self):
-        pass
+        self.property_types = self.read_property_map(
+                os.path.join(CURRENT_DIR, 'aws_properties_map.json'))
+        self.resource_types = self.read_property_map(
+                os.path.join(CURRENT_DIR, 'aws_resources_map.json'))
 
 
     def build_friendly_lookup_table(self, property_types, resource_types):
@@ -122,9 +125,13 @@ class Generator(object):
         for value in property_map.values():
             clean_value = value['type'].replace('"', '').strip()
             if clean_value not in primitives:
-                non_primitives.append(clean_value)
-                require_statement = statement.format(clean_value)
-                require_statements.append(require_statement)
+                if clean_value not in self.property_types.keys():
+                    print("%s does not exist in the properties directory" % clean_value)
+                    # TODO: Look it up from the resources instead
+                else:
+                    non_primitives.append(clean_value)
+                    require_statement = statement.format(clean_value)
+                    require_statements.append(require_statement)
 
         if non_primitives:
             require_statements = "\n".join(require_statements)
