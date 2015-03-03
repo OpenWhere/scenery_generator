@@ -73,9 +73,9 @@ class Generator(object):
         if len(class_array) < 3:
             return None
 
-        class_name = class_array[2]
+        simple_class_name = class_array[2]
         output_dir = os.path.join(CURRENT_DIR, 'output', class_array[1])
-        file_path = os.path.join(output_dir, class_name + ".js")
+        file_path = os.path.join(output_dir, simple_class_name + ".js")
         return self.create_and_write_template(
                 class_name, property_map, template, output_dir, file_path)
 
