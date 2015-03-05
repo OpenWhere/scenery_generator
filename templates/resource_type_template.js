@@ -14,6 +14,7 @@
 
 'use strict';
 
+var AWSClass = require('../AWSClass.js');
 var Resource = require('../Resource.js');
 %s
 
@@ -24,5 +25,5 @@ var Class = function (id) {
 };
 require('util').inherits(Class, Resource);
 
-Class = Resource.registerPropertyPrototypes(Class, propertyMap);
+Class = AWSClass.registerPropertyPrototypes(Class, propertyMap);
 module.exports = Class;
