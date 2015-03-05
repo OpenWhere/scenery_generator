@@ -76,8 +76,10 @@ class Generator(object):
         simple_class_name = class_array[2]
         output_dir = os.path.join(CURRENT_DIR, 'output', class_array[1])
         file_path = os.path.join(output_dir, simple_class_name + ".js")
-        return self.create_and_write_template(
-                class_name, property_map, template, output_dir, file_path)
+
+        parent_class = 'Taggable' if 'Tags' in property_map.keys() else 'Resource'
+        return self.create_and_write_template( class_name, property_map,
+                template, output_dir, file_path, parent_class)
 
 
     def create_property_class_file(self, template, class_name, property_map):
@@ -87,7 +89,7 @@ class Generator(object):
                 class_name, property_map, template, output_dir, file_path)
 
 
-    def create_and_write_template(self, class_name, property_map, template_path, output_dir, file_path):
+    def create_and_write_template(self, class_name, property_map, template_path, output_dir, file_path, parent_class=None):
 
         # Check to see if output directory exists; create it if not
         if not os.path.exists(output_dir):
@@ -110,8 +112,14 @@ class Generator(object):
         with open (template_path, "r") as template_file:
             # Read in the template, plugging in our values for the class
             template = template_file.read()
-            class_file_contents = template % (require_statements,
-                    formatted_pm, class_name)
+
+            if not parent_class:
+                class_file_contents = template % (require_statements,
+                        formatted_pm, class_name)
+            else:
+                class_file_contents = template % (parent_class, parent_class,
+                        require_statements, formatted_pm,
+                        parent_class, class_name, parent_class)
 
             # Write the file to the output directory
             with open(file_path, "w") as output_file:
