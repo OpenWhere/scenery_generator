@@ -24,10 +24,13 @@ class Generator(object):
         p = inflect.engine()
         for key, values in all_types.iteritems():
             for prop in values:
-                if '_' in prop['type'] or '-' in prop['type']:
-                    friendly_name = p.singular_noun(prop['name'])
+                if '-' in prop['type']:
+                    prop['type'] = prop['type'].replace('-', '_')
+                if '_' in prop['type']:
+                    camelCaseType = self.to_camel_case(prop['type'])
+                    friendly_name = p.singular_noun(camelCaseType)
                     if not friendly_name:
-                        friendly_name = prop['name']
+                        friendly_name = camelCaseType
                     lookup_table[prop['type']] = friendly_name
 
         friendly_names = lookup_table.values()
@@ -131,3 +134,8 @@ class Generator(object):
             return require_statements, non_primitives
         else:
             return '', non_primitives
+
+    def to_camel_case(self, snake_str):
+        components = snake_str.split('_')
+        # Capitalize the first letter of each component and join them together.
+        return "".join([x.title() for x in components])

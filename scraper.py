@@ -144,8 +144,10 @@ class Scraper(object):
                     clean_text = p.a.get('href')\
                                 .replace('.html','')\
                                 .replace('-', '_')\
+                                .replace('aws_properties_', '')\
+                                .replace('aws_property_', '')\
+                                .replace('as_', '')\
                                 .strip()
-                property_dict['type'] = self._get_type(clean_text)
 
                 # Field-specific types
                 if name == 'Attributes':
