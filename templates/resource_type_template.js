@@ -14,15 +14,16 @@
 
 'use strict';
 
-var Resource = require('../Resource.js');
+var AWSClass = require('../AWSClass.js');
+var %s = require('../%s.js');
 %s
 
 var propertyMap = %s;
 
 var Class = function (id) {
-    return Resource.call(this, id, '%s', {});
+    return %s.call(this, id, '%s', {});
 };
-require('util').inherits(Class, Resource);
+require('util').inherits(Class, %s);
 
-Class = Resource.registerPropertyPrototypes(Class, propertyMap);
+Class = AWSClass.registerPropertyPrototypes(Class, propertyMap);
 module.exports = Class;
