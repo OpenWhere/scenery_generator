@@ -48,7 +48,11 @@ def clean_property_type_names(property_types, resource_types):
     # look up the friendly name from the lookup table we constructed
     clean_property_types = {}
     for key, value in property_types.iteritems():
-        newKey = key.replace('-', '_')
+        newKey = key.replace('-', '_')\
+                    .replace('aws_properties_', '')\
+                    .replace('aws_property_', '')\
+                    .replace('as_', '')\
+                    .strip()
         if not newKey in lookup_table:
             print("%s not found in lookup table" % newKey)
             clean_property_types[newKey] = value

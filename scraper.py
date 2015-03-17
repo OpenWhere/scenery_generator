@@ -149,16 +149,16 @@ class Scraper(object):
                                 .replace('as_', '')\
                                 .strip()
 
-                # Field-specific types
-                if name == 'Attributes':
-                    property_dict['list'] = False
-                    property_dict['type'] = 'object'
-
                 clean_type = self._get_type(clean_text)
                 if self._is_exceptional_type(clean_type):
                     property_dict['type'] = 'string'
                 else:
                     property_dict['type'] = clean_type
+
+                # Field-specific types
+                if name == 'Attributes':
+                    property_dict['list'] = False
+                    property_dict['type'] = 'object'
 
             property_types.append(property_dict)
         return property_types
