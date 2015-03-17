@@ -238,4 +238,6 @@ class Scraper(object):
             return 'boolean'
         if 'json' in string:
             return 'object'
+        if 'name' in string:
+            return 'string'
         return type_string
