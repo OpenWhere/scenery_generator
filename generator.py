@@ -5,7 +5,10 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Generator(object):
     def __init__(self):
-        pass
+        self.property_types = self.read_property_map(
+                os.path.join(CURRENT_DIR, 'aws_properties_map.json'))
+        self.resource_types = self.read_property_map(
+                os.path.join(CURRENT_DIR, 'aws_resources_map.json'))
 
 
     def build_friendly_lookup_table(self, property_types, resource_types):
@@ -117,14 +120,37 @@ class Generator(object):
     def get_require_statements(self, property_map):
         primitives = ['string', 'number', 'boolean', 'object']
         statement = "var {0} = require('../properties/{0}.js');"
+        resource_statement = "var {0} = require('../{1}/{0}.js');"
         non_primitives = []
         require_statements = []
         for value in property_map.values():
             clean_value = value['type'].replace('"', '').strip()
             if clean_value not in primitives:
-                non_primitives.append(clean_value)
-                require_statement = statement.format(clean_value)
-                require_statements.append(require_statement)
+                if clean_value not in self.property_types.keys():
+                    resource_refs = [ k for k in self.resource_types.keys() \
+                                      if clean_value in k ]
+
+                    if not resource_refs:
+                        print("%s does not exist in properties or resources" % clean_value)
+                        """ TODO: The following documentation edge cases are causing errors:
+
+                        Listofroutetableids does not exist in properties or resources
+                        Listofusers does not exist in properties or resources
+                        LoginProfiletype does not exist in properties or resources
+                        ExampleNetbiosNode2 does not exist in properties or resources
+                        """
+                        continue
+
+                    # TODO: Handle multiple references? No issues with this yet!
+                    aws, directory, resource = resource_refs[0].split("::")
+                    print("Found %s in the resources dict: %s" % (resource, directory))
+                    non_primitives.append(resource)
+                    require_statement = resource_statement.format(resource, directory)
+                    require_statements.append(require_statement)
+                else:
+                    non_primitives.append(clean_value)
+                    require_statement = statement.format(clean_value)
+                    require_statements.append(require_statement)
 
         if non_primitives:
             require_statements = "\n".join(require_statements)

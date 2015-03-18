@@ -78,10 +78,26 @@ class Scraper(object):
         of all property/resource types in the docs_page_dict
         """
         type_map = {}
-        for key, value in docs_page_dict.items():
+        for key, value in docs_page_dict.iteritems():
             properties = self.get_properties(value)
             if properties:
                 type_map[key] = properties
+            else:
+                # TODO: Fix these hard-coded edge cases and find an elegant solution
+                if key == 'aws-properties-stack-parameters':
+                    type_map[key] = [{'name': 'properties', 'type': 'object', 'list': False}]
+                elif key == 'aws-properties-ec2-port-range':
+                    type_map[key] = [
+                            { 'name': 'from', 'type': 'number', 'list': False },
+                            { 'name': 'to', 'type': 'number', 'list': False },
+                    ]
+                elif key == 'aws-properties-ec2-icmp':
+                    type_map[key] = [
+                            { 'name': 'code', 'type': 'number', 'list': False },
+                            { 'name': 'type', 'type': 'number', 'list': False },
+                    ]
+                else:
+                    print("No properties found for %s" % key)
 
         return type_map
 
@@ -147,16 +163,18 @@ class Scraper(object):
                                 .strip()
                 property_dict['type'] = self._get_type(clean_text)
 
-                # Field-specific types
-                if name == 'Attributes':
-                    property_dict['list'] = False
-                    property_dict['type'] = 'object'
-
                 clean_type = self._get_type(clean_text)
-                if self._is_exceptional_type(clean_type):
+                if self._is_string_type(clean_type):
                     property_dict['type'] = 'string'
+                elif self._is_object_type(clean_type):
+                    property_dict['type'] = 'object'
                 else:
                     property_dict['type'] = clean_type
+
+                # Field-specific types
+                if 'Attributes' in name:
+                    property_dict['list'] = False
+                    property_dict['type'] = 'object'
 
             property_types.append(property_dict)
         return property_types
@@ -169,18 +187,37 @@ class Scraper(object):
         return clean_name
 
 
-    def _is_exceptional_type(self, type_string):
+    def _is_object_type(self, type_string):
         """
-        This function checks whether or not type_string is a problem child and,
-        if so, converts the type to "string." There were a couple types in the
-        documentation that are not properly defined (and therefore can't be
-        parsed), but string appears to be the valid type for all of them.
+        Handle edge-case types that should be objects
+        """
+        exceptional_strings = [
+            'Attribute',
+            'aws_properties_name',
+            'RefID',
+            'Aamazonsnstopicsarns',
+            'LoginProfiletype',
+            'ExampleNetbiosNode2',
+        ]
+        for es in exceptional_strings:
+            if es in type_string:
+                return True
+
+        return False
+
+
+    def _is_string_type(self, type_string):
+        """
+        Handle edge-case types that should be strings
         """
         exceptional_strings = [
             'Youcannotcreate',
             'anemptymap',
             'curitygroup',
             'referencestoawsiamroles',
+            'Timestamp',
+            'Listofroutetableids',
+            'Listofusers',
         ]
         for es in exceptional_strings:
             if es in type_string:
