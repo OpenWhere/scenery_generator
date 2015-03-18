@@ -151,6 +151,11 @@ class Scraper(object):
                             .replace('.', '')\
                             .replace(':', '')\
                             .replace('\n', '').strip()
+
+                if "," in clean_text:
+                    # we're likely inspecting the wrong element; get the next one
+                    continue
+
                 if 'list' in clean_text.lower():
                     property_dict['list'] = True
                     lower_text = clean_text.lower()
