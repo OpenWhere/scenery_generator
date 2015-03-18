@@ -16,8 +16,8 @@ def main():
     resource_cache_dir = None
 
     # Uncomment the following lines if you have cached docs you wish to use
-    #property_cache_dir = os.path.join(CURRENT_DIR, 'cache/properties')
-    #resource_cache_dir = os.path.join(CURRENT_DIR, 'cache/resources')
+    property_cache_dir = os.path.join(CURRENT_DIR, 'cache/properties')
+    resource_cache_dir = os.path.join(CURRENT_DIR, 'cache/resources')
 
     property_doc = scraper.get_documentation_pages(PROPERTY_TYPES_CONTENTS_PAGE, property_cache_dir)
     resource_doc = scraper.get_documentation_pages(RESOURCE_TYPES_CONTENTS_PAGE, resource_cache_dir)

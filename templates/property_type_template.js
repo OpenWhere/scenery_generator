@@ -15,16 +15,16 @@
 'use strict';
 
 // TODO: Create a Property base class so properties don't extend Resource!
-var Resource = require('../Resource.js');
+var AWSClass = require('../AWSClass.js');
 %s
 
 var propertyMap = %s;
 
 var Class = function (id) {
-    return Resource.call(this, id, '%s', {});
+    return AWSClass.call(this, id, '%s', {});
 };
 // TODO: Create a Property base class so properties don't extend Resource!
-require('util').inherits(Class, Resource);
+require('util').inherits(Class, AWSClass);
 
-Class = Resource.registerPropertyPrototypes(Class, propertyMap);
+Class = AWSClass.registerPropertyPrototypes(Class, propertyMap);
 module.exports = Class;
