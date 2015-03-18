@@ -16,8 +16,8 @@ def main():
     resource_cache_dir = None
 
     # Uncomment the following lines if you have cached docs you wish to use
-    property_cache_dir = os.path.join(CURRENT_DIR, 'cache/properties')
-    resource_cache_dir = os.path.join(CURRENT_DIR, 'cache/resources')
+    #property_cache_dir = os.path.join(CURRENT_DIR, 'cache/properties')
+    #resource_cache_dir = os.path.join(CURRENT_DIR, 'cache/resources')
 
     property_doc = scraper.get_documentation_pages(PROPERTY_TYPES_CONTENTS_PAGE, property_cache_dir)
     resource_doc = scraper.get_documentation_pages(RESOURCE_TYPES_CONTENTS_PAGE, resource_cache_dir)
@@ -48,7 +48,11 @@ def clean_property_type_names(property_types, resource_types):
     # look up the friendly name from the lookup table we constructed
     clean_property_types = {}
     for key, value in property_types.iteritems():
-        newKey = key.replace('-', '_')
+        newKey = key.replace('-', '_')\
+                    .replace('aws_properties_', '')\
+                    .replace('aws_property_', '')\
+                    .replace('as_', '')\
+                    .strip()
         if not newKey in lookup_table:
             print("%s not found in lookup table" % newKey)
             clean_property_types[newKey] = value

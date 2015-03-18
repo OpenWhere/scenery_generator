@@ -160,8 +160,10 @@ class Scraper(object):
                     clean_text = p.a.get('href')\
                                 .replace('.html','')\
                                 .replace('-', '_')\
+                                .replace('aws_properties_', '')\
+                                .replace('aws_property_', '')\
+                                .replace('as_', '')\
                                 .strip()
-                property_dict['type'] = self._get_type(clean_text)
 
                 clean_type = self._get_type(clean_text)
                 if self._is_string_type(clean_type):
@@ -236,4 +238,6 @@ class Scraper(object):
             return 'boolean'
         if 'json' in string:
             return 'object'
+        if 'name' in string:
+            return 'string'
         return type_string
